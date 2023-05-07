@@ -1,4 +1,5 @@
 ## Features: 
+
 Required:
 - Ability to search for a city, calls the OpenWeather API with Axios.
 - Find the user's location via the Geolocation API.
@@ -9,8 +10,11 @@ Extra:
 - Animated SVG icons.
 - Draggable forecast carrousel slider.
 - Ability to remove saved locations.
+- Search auto-focuses on page load.
+- Button to clear the search input quickly.
 
 ## Challanges I faced and how I fixed them:
+
 - The free api plan didnt have access to the previous weather for the day so instead I changed the section to "Forecast" which shows the weather every 3 hours for 24 hours.
 
 - API was not returning the desired format so I had to use some methods from the JS "Math" object to round decimal numbers.
