@@ -1,3 +1,5 @@
+Deployment URL: https://vue-3-weather.netlify.app
+
 ## How to run:
 
 1. `npm i` to install dependencies.
