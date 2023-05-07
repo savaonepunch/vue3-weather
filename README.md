@@ -1,3 +1,8 @@
+## How to run:
+
+1. `npm i` to install dependencies.
+2. `npm run dev` to start the live development server.
+
 ## Features: 
 
 Required:
