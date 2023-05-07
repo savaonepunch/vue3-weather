@@ -586,6 +586,8 @@ div.weather-container {
             display: flex;
             flex-direction: column;
             gap: 10px;
+            margin-bottom: 50px;
+
 
             & div.card {
                 background-color: rgba(0, 0, 0, 0.233);
