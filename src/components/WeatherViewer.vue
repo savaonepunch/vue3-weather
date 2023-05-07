@@ -586,7 +586,7 @@ div.weather-container {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-bottom: 50px;
+            margin-bottom: 10px;
 
 
             & div.card {
