@@ -204,7 +204,7 @@ watch(inputValue, (newVal) => {
 watch(inputValue,
     debounce(() => {
         showLocations();
-    }, 1000)
+    }, 100)
 )
 
 </script>
