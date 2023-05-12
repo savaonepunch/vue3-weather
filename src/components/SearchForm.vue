@@ -1,56 +1,43 @@
 <template>
     <form @submit.prevent="searchLocations">
-
         <div :class="{ 'search-container': true, 'dropdown-open': locations.length && inputValue }">
             <button type="submit">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </button>
-            <input
-                @focus="inputFocused = true"
-                @blur="inputFocused = false"
-                v-model="inputValue"
-                ref="inputRef"
-                type="text"
-                name="search"
-                id="search"
-                placeholder="Search for a city..."
-            >
-            <button v-if="!(locations.length && inputValue)" @click.prevent="locateUser">
+            <input @focus="inputFocused = true"
+                   @blur="inputFocused = false"
+                   v-model="inputValue"
+                   ref="inputRef"
+                   type="text"
+                   name="search"
+                   id="search"
+                   placeholder="Search for a city...">
+            <button v-if="!(locations.length && inputValue)"
+                    @click.prevent="locateUser">
                 <i class="fa-solid fa-location-crosshairs"></i>
             </button>
 
-            <button v-else @click.prevent="inputValue = ''">
+            <button v-else
+                    @click.prevent="inputValue = ''">
                 <i class="fa-solid fa-xmark-circle"></i>
             </button>
         </div>
 
         <div class="dropdown-wrapper">
-            <div
-                v-if="locations.length && inputValue"
-                class="dropdown"
-            >
-                <div
-                    @click="getCityWeather"
-                    v-for="location in locations"
-                    class="location"
-                    :data-lat="location.lat"
-                    :data-lon="location.lon"
-                    :data-city="location.name"
-                    :data-country="location.country"
-                >
+            <div v-if="locations.length && inputValue"
+                 class="dropdown">
+                <div v-for="location in locations"
+                     @click="getCityWeather(location)"
+                     class="location">
                     {{ location.name }}, {{ location.state ? location.state + ", " : "" }}{{ location.country }}
                 </div>
             </div>
         </div>
 
-        <p
-            class="searching"
-            v-if="searching"
-        >Searching... <i class="fa-solid fa-location-dot fa-bounce"></i></p>
-        <p
-            class="no-results"
-            v-if="noResults"
-        >No results!</p>
+        <p class="searching"
+           v-if="searching">Searching... <i class="fa-solid fa-location-dot fa-bounce"></i></p>
+        <p class="no-results"
+           v-if="noResults">No results!</p>
     </form>
 </template>
 
@@ -58,6 +45,7 @@
 import axios from 'axios'
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import debounce from 'lodash.debounce';
 
 const inputRef = ref(null);
 const inputValue = ref(null);
@@ -69,6 +57,7 @@ const lon = ref(null);
 const city = ref(null);
 const country = ref(null);
 const noResults = ref(false);
+const singleLocation = ref(null);
 
 const router = useRouter();
 
@@ -131,6 +120,41 @@ const locateUser = () => {
 
 const searchLocations = async () => {
     noResults.value = false;
+    inputValue.value = inputValue.value.trim(' ');
+
+    try {
+        if (!inputValue.value) return;
+
+        searching.value = true;
+
+        const { data } = await axios.get(`https://api.openweathermap.org/geo/1.0/direct`, {
+            params: {
+                q: inputValue.value,
+                limit: 0,
+                appid: 'e8b2ae8d3ec2683f4f92e54458f76256',
+            }
+        })
+
+        console.log(data);
+        locations.value = data;
+        console.log(locations.value);
+
+        if (!locations.value.length) noResults.value = true;
+        searching.value = false;
+
+        if (locations.value.length === 1) {
+            getCityWeather(locations.value[0]);
+        }
+
+    } catch (error) {
+        console.log(error);
+        searching.value = false;
+    }
+}
+
+const showLocations = async () => {
+    noResults.value = false;
+    inputValue.value = inputValue.value.trim(' ');
 
     try {
         if (!inputValue.value) return;
@@ -158,11 +182,11 @@ const searchLocations = async () => {
     }
 }
 
-const getCityWeather = (e) => {
-    lat.value = e.currentTarget.getAttribute('data-lat');
-    lon.value = e.currentTarget.getAttribute('data-lon');
-    city.value = e.currentTarget.getAttribute('data-city');
-    country.value = e.currentTarget.getAttribute('data-country');
+const getCityWeather = (location) => {
+    lat.value = location.lat;
+    lon.value = location.lon;
+    city.value = location.name
+    country.value = location.country;
 
     console.log(lat.value, lon.value);
 
@@ -176,6 +200,12 @@ onMounted(() => {
 watch(inputValue, (newVal) => {
     if (!newVal) locations.value = [];
 })
+
+watch(inputValue,
+    debounce(() => {
+        showLocations();
+    }, 1000)
+)
 
 </script>
 
@@ -222,6 +252,8 @@ form {
                     border-left: 1px solid rgba(0, 0, 0, 0.5);
                 }
             }
+
+            
         }
 
         &.dropdown-open {

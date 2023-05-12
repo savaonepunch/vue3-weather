@@ -1,16 +1,19 @@
 <template>
-    <div
-        v-if="!loading"
-        class="weather-container"
-    >
+    <div v-if="!loading"
+         class="weather-container">
         <div class="current-weather">
             <h1 class="location">
                 {{ route.query.city }}, {{ weather.state ? weather.state + ", " : "" }}{{ weather.sys.country }}
-                <button
-                    @click="saveLocation"
-                    class="save-location"
-                >
+                <button v-if="!disableButton"
+                        @click="saveLocation"
+                        class="save-location">
                     SAVE LOCATION
+                </button>
+                <button v-else
+                        @click="locationsStore.locations.splice(getCurrentLocationIndex(), 1) && (disableButton = false)"
+                        class="delete-location"
+                        :style="{ 'background-color': 'red !important' }">
+                    DELETE LOCATION
                 </button>
             </h1>
             <p>
@@ -71,21 +74,15 @@
         </div>
         <div class="todays-weather">
             <p>Forecast</p>
-            <div
-                @mousedown="carouselMouseDownHandler"
-                ref="cardsCarousel"
-                class="content"
-            >
-                <div
-                    v-for="(n, index) in 7"
-                    class="card"
-                >
+            <div @mousedown="carouselMouseDownHandler"
+                 ref="cardsCarousel"
+                 class="content">
+                <div v-for="(n, index) in 7"
+                     class="card">
                     <span class="time">{{ forecast.list[index].dt_txt.split(' ')[1].split(':').slice(0, 2).join(':')
                     }}</span>
-                    <img
-                        draggable="false"
-                        :src="getIcon(forecast.list[index].weather[0].icon)"
-                    >
+                    <img draggable="false"
+                         :src="getIcon(forecast.list[index].weather[0].icon)">
                     <span class="temp">{{ Math.round(forecast.list[index].main.temp * 10) / 10 }}°</span>
                 </div>
             </div>
@@ -93,10 +90,8 @@
         <div class="future-weather">
             <p>Next 3 days</p>
             <div class="content-mobile">
-                <div
-                    v-for="(weather, index) in dailyForecast.daily.slice(1, 4)"
-                    class="card"
-                >
+                <div v-for="(weather, index) in dailyForecast.daily.slice(1, 4)"
+                     class="card">
 
                     <div class="row">
                         <div class="info">
@@ -146,10 +141,8 @@
             </div>
 
             <div class="content">
-                <div
-                    v-for="(weather, index) in dailyForecast.daily.slice(1, 4)"
-                    class="card"
-                >
+                <div v-for="(weather, index) in dailyForecast.daily.slice(1, 4)"
+                     class="card">
 
                     <div class="info">
                         <span class="title">
@@ -195,10 +188,8 @@
         </div>
     </div>
 
-    <div
-        v-else
-        class="loading-overlay"
-    >
+    <div v-else
+         class="loading-overlay">
         <i class="fa-solid fa-sun fa-flip fa-2xl"></i>
         <span>Loading...</span>
     </div>
@@ -214,6 +205,7 @@ const loading = ref(true);
 const weather = ref(null);
 const forecast = ref(null);
 const dailyForecast = ref(null);
+const disableButton = ref(false);
 
 const cardsCarousel = ref(null);
 const pos = ref({ left: 0, x: 0 });
@@ -234,16 +226,30 @@ const locationsStore = useLocationsStore();
 onMounted(() => {
     getWeather();
     console.log(locationsStore.locations);
+
+    if (checkIfLocationExists()) disableButton.value = true;
 })
 
-const saveLocation = () => {
-    if (
+const getCurrentLocationIndex = () => {
+    return locationsStore.locations.findIndex(
+        (location) =>
+            location.city === route.query.city &&
+            location.country === route.query.country
+    )
+}
+
+const checkIfLocationExists = () => {
+    return (
         locationsStore.locations.some(
             (location) =>
                 location.city === route.query.city &&
                 location.country === route.query.country
         )
-    ) {
+    )
+}
+
+const saveLocation = () => {
+    if (checkIfLocationExists()) {
         // Object with the same lat and lon values already exists in the store
         console.log("Location already exists!");
         console.log(locationsStore.locations);
@@ -251,6 +257,7 @@ const saveLocation = () => {
     }
 
     locationsStore.locations.push(location.value);
+    disableButton.value = true;
     console.log(locationsStore.locations);
 }
 
@@ -372,6 +379,10 @@ div.weather-container {
                     cursor: pointer;
                     background-color: #ffc053;
                 }
+
+                // &.delete-location {
+                //     background-color: red;
+                // }
             }
 
             @media only screen and (max-width: 635px) {
@@ -586,8 +597,7 @@ div.weather-container {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-bottom: 10px;
-
+            margin-bottom: 50px;
 
             & div.card {
                 background-color: rgba(0, 0, 0, 0.233);
