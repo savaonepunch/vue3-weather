@@ -20,7 +20,7 @@ Extra:
 - Search auto-focuses on page load.
 - Button to clear the search input quickly.
 
-## Challanges I faced and how I fixed them:
+## Challenges I faced and how I fixed them:
 
 - The free api plan didnt have access to the previous weather for the day so instead I changed the section to "Forecast" which shows the weather every 3 hours for 24 hours.
 
